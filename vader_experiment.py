@@ -1,26 +1,27 @@
-from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import csv
 import pandas as pd 
 import numpy as np
 import re
 
-#variable names of all documents
+analyser = SentimentIntensityAnalyzer()
 
-# Create a function to clean the tweets
+# create a function to clean the tweets
+
 def clean_tweets(tweet):
-    tweet = re.sub('@[A-Za-z0–9]+', '', tweet) #Removing @mentions
-    tweet = re.sub('#', '', tweet) # Removing '#' hash tag
-    tweet = re.sub('RT[\s]+', '', tweet) # Removing RT
-    tweet = re.sub('https?:\/\/\S+', '', tweet) # Removing hyperlink
+    tweet = re.sub('@[A-Za-z0–9]+', '', str(tweet)) #Removing @mentions
+    tweet = re.sub('#', '', str(tweet)) # Removing '#' hash tag
+    tweet = re.sub('RT[\s]+', '', str(tweet)) # Removing RT
+    tweet = re.sub('https?:\/\/\S+', '', str(tweet)) # Removing hyperlink
     
     return tweet
 
-# find polarity of each tweet 
+# find polarity of each tweet
 def get_polarity(tweet):
-    return  TextBlob(tweet).sentiment.polarity
+    sentiment = analyser.polarity_scores(tweet)
+    return sentiment
 
-# Dataset cleaning  
-
+# dataset cleaning 
 def STS_cleaning(polarity):
     if polarity == 0:
         return 'negative'
@@ -37,35 +38,33 @@ def covid_cleaning(polarity):
     elif polarity == 3:
         return 'neutral'
 
-# Different Classifiers
-
+# different classifiers 
 def get_Sentiment_1(polarity):
-    if polarity > 0:
+    if polarity['compound'] > 0:
         return 'positive'
-    elif polarity == 0:
+    elif polarity['compound'] == 0:
         return 'neutral'
-    elif polarity < 0: 
+    elif polarity['compound'] < 0: 
         return 'negative'
 
 def get_Sentiment_2(polarity):
-    if polarity >= 0.1:
+    if polarity['compound'] >= 0.1:
         return 'positive'
-    elif polarity > 0.1 or polarity < -0.1:
+    elif polarity['compound'] < 0.1 or polarity['compound'] > -0.1:
         return 'neutral'
-    elif polarity <= -0.1:
+    elif polarity['compound'] <= -0.1:
         return 'negative'
 
 def get_Sentiment_3(polarity):
-    if polarity >= 0.05:
+    if polarity['compound'] >= 0.05:
         return 'positive'
-    elif polarity > 0.05 and polarity < -0.05:
+    elif polarity['compound'] < 0.05 and polarity['compound'] > -0.05:
         return 'neutral'
-    elif polarity <= -0.05:
+    elif polarity['compound'] <= -0.05:
         return 'negative' 
-
 # Evaluations 
-
 def get_evaluation(df):
+
     total = df.shape[0]
 
     pos_tweets = df[df.actual == 'positive'].shape[0]
@@ -101,7 +100,8 @@ def get_evaluation(df):
     accuracy = (true/total)*100
     print("Accuracy: ", accuracy,"%")
 
-# STS Dataset
+# STS DATASET
+
 def main_STS():
     dataset = pd.read_csv("Dataset/STS.csv")
     
@@ -125,7 +125,8 @@ def main_STS():
 print("---- STS ----")
 main_STS()
 
-# Covid Datset
+# Covid Dataset
+
 def main_covid():
     dataset = pd.read_csv("Dataset/covid.csv")
     dataset = dataset.rename(columns = {'label':'actual' ,'tweet':'text'})
@@ -155,7 +156,7 @@ def main_debate():
     df = pd.DataFrame(dataset, columns=['sentiment', 'text'])
     df = df.rename(columns = {'sentiment':'actual'})
 
-    df['text'] = df['text'].apply(cleanTweets)
+    df['text'] = df['text'].apply(clean_tweets)
     df['polarity'] = df['text'].apply(get_polarity)
     for x in range(0,3):
         if x == 0:
@@ -171,13 +172,13 @@ def main_debate():
 print("----Debate-----")
 main_debate()
 
-# Kaggle Dataset
+# Kaggle Dataset 
 
 def main_train():
     dataset = pd.read_csv("Dataset/train.csv")
     dataset = dataset.rename(columns = {'sentiment':'actual'})
    
-    dataset['text'] = dataset['text'].apply(cleanTweets)
+    dataset['text'] = dataset['text'].apply(clean_tweets)
     dataset['polarity'] = dataset['text'].apply(get_polarity)
     for x in range(0,3):
         if x == 0:
@@ -200,7 +201,7 @@ def main_socialDilemma():
     df = pd.DataFrame(dataset, columns=['Sentiment', 'text'])
     df = df.rename(columns = {'Sentiment':'actual'})
 
-    df['text'] = df['text'].apply(cleanTweets)
+    df['text'] = df['text'].apply(clean_tweets)
     df['polarity'] = df['text'].apply(get_polarity)
     for x in range(0,3):
         if x == 0:

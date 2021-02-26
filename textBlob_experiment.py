@@ -50,7 +50,7 @@ def get_Sentiment_1(polarity):
 def get_Sentiment_2(polarity):
     if polarity >= 0.1:
         return 'positive'
-    elif polarity > 0.1 or polarity < -0.1:
+    elif polarity < 0.1 or polarity > -0.1:
         return 'neutral'
     elif polarity <= -0.1:
         return 'negative'
@@ -58,7 +58,7 @@ def get_Sentiment_2(polarity):
 def get_Sentiment_3(polarity):
     if polarity >= 0.05:
         return 'positive'
-    elif polarity > 0.05 and polarity < -0.05:
+    elif polarity < 0.05 and polarity > -0.05:
         return 'neutral'
     elif polarity <= -0.05:
         return 'negative' 

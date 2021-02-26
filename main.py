@@ -8,3 +8,4 @@ collectTweets = api.search("Boris", 'en', count = 5, result_type = 'mixed')
 
 for tweet in collectTweets:
     print(tweet.text )
+
