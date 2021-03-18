@@ -3,9 +3,14 @@ import csv
 import pandas as pd 
 import numpy as np
 import re
+import nltk 
+from nltk.corpus import stopwords, wordnet
+from nltk.stem import WordNetLemmatizer
 
 analyser = SentimentIntensityAnalyzer()
-
+en_stops = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer() 
+  
 # create a function to clean the tweets
 
 def clean_tweets(tweet):
@@ -16,6 +21,35 @@ def clean_tweets(tweet):
     
     return tweet
 
+def remove_stopw(tweet):
+    words = tweet.split()
+    tweet = ""
+    for word in words: 
+        if word not in en_stops:
+            tweet = tweet + " " + word
+    return tweet
+
+def get_pos(word):
+    tag = nltk.pos_tag([word])[0][1]
+    if tag.startswith('J'):
+        return wordnet.ADJ
+    elif tag.startswith('V'):
+        return wordnet.VERB
+    elif tag.startswith('N'):
+        return wordnet.NOUN
+    elif tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return wordnet.NOUN
+
+def lemmatization(tweet):
+    words = nltk.word_tokenize(tweet)
+    tweet = ""
+    for word in words:
+        new = lemmatizer.lemmatize(word,get_pos(word))
+        tweet = tweet + " " + new
+    return tweet
+    
 # find polarity of each tweet
 def get_polarity(tweet):
     sentiment = analyser.polarity_scores(tweet)
@@ -47,21 +81,6 @@ def get_Sentiment_1(polarity):
     elif polarity['compound'] < 0: 
         return 'negative'
 
-def get_Sentiment_2(polarity):
-    if polarity['compound'] >= 0.1:
-        return 'positive'
-    elif polarity['compound'] > 0.1 and polarity['compound']< -0.1:
-        return 'neutral'
-    elif polarity['compound'] <= -0.1:
-        return 'negative'
-
-def get_Sentiment_3(polarity):
-    if polarity['compound'] >= 0.05:
-        return 'positive'
-    elif polarity['compound'] > 0.05 and polarity['compound'] < -0.05:
-        return 'neutral'
-    elif polarity['compound']<= -0.05:
-        return 'negative' 
 
 # Evaluations 
 def get_evaluation(df):
@@ -101,8 +120,7 @@ def get_evaluation(df):
     accuracy = (true/total)*100
     print("Accuracy: ", accuracy,"%")
 
-# STS DATASET
-
+# STS Dataset
 def main_STS():
     dataset = pd.read_csv("Dataset/STS.csv")
     
@@ -111,41 +129,38 @@ def main_STS():
 
     df['text'] = df['text'].apply(clean_tweets)
     df['actual'] = df['actual'].apply(STS_cleaning)
+    print("Removing Stopwords")
+    df['text'] = df['text'].apply(remove_stopw)
     df['polarity'] = df['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_1)
-            get_evaluation(df)
-        elif x == 1:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_2)
-            get_evaluation(df)
-        else:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_3)
-            get_evaluation(df)
+    df['predicted'] = df['polarity'].apply(get_Sentiment_1)
+    get_evaluation(df)
+    print("Lemmatization")
+    df['text'] = df['text'].apply(lemmatization)
+    df['polarity'] = df['text'].apply(get_polarity)
+    df['predicted'] = df['polarity'].apply(get_Sentiment_1)
+    get_evaluation(df)
 
 print("---- STS ----")
 main_STS()
 
-# Covid Dataset
-
+# Covid Datset
 def main_covid():
     dataset = pd.read_csv("Dataset/covid.csv")
     dataset = dataset.rename(columns = {'label':'actual' ,'tweet':'text'})
 
     dataset['text'] = dataset['text'].apply(clean_tweets)
     dataset['actual'] = dataset['actual'].apply(covid_cleaning)
+    print("Removing Stopwords")
+    dataset['text'] = dataset['text'].apply(remove_stopw)
     dataset['polarity'] = dataset['text'].apply(get_polarity)
+    dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
+    get_evaluation(dataset)
+    print("Lemmatization")
+    dataset['text'] = dataset['text'].apply(lemmatization)
+    dataset['polarity'] = dataset['text'].apply(get_polarity)
+    dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
+    get_evaluation(dataset)
 
-    for x in range(0,3):
-        if x == 0:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
-            get_evaluation(dataset)
-        elif x == 1:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_2)
-            get_evaluation(dataset)
-        else:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_3)
-            get_evaluation(dataset)
 
 print("---- COVID ---")
 main_covid()
@@ -158,62 +173,39 @@ def main_debate():
     df = df.rename(columns = {'sentiment':'actual'})
 
     df['text'] = df['text'].apply(clean_tweets)
+    print("Removing Stopwords")
+    df['text'] = df['text'].apply(remove_stopw)
     df['polarity'] = df['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_1)
-            get_evaluation(df)
-        elif x == 1:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_2)
-            get_evaluation(df)
-        else:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_3)
-            get_evaluation(df)
+    df['predicted'] = df['polarity'].apply(get_Sentiment_1)
+    get_evaluation(df)
+    print("Lemmatization")
+    df['text'] = df['text'].apply(lemmatization)
+    df['polarity'] = df['text'].apply(get_polarity)
+    df['predicted'] = df['polarity'].apply(get_Sentiment_1)
+    get_evaluation(df)
+
 
 print("----Debate-----")
 main_debate()
 
-# Kaggle Dataset 
+# Airlines Dataset
 
-def main_train():
-    dataset = pd.read_csv("Dataset/train.csv")
-    dataset = dataset.rename(columns = {'sentiment':'actual'})
+def main_airlines():
+    dataset = pd.read_csv("Dataset/airline.csv")
+    dataset = dataset.rename(columns = {'airline_sentiment':'actual'})
    
     dataset['text'] = dataset['text'].apply(clean_tweets)
+    print("Removing Stopwords")
+    dataset['text'] = dataset['text'].apply(remove_stopw)
     dataset['polarity'] = dataset['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
-            get_evaluation(dataset)
-        elif x == 1:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_2)
-            get_evaluation(dataset)
-        else:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_3)
-            get_evaluation(dataset)
+    dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
+    get_evaluation(dataset)
+    print("Lemmatization")
+    dataset['text'] = dataset['text'].apply(lemmatization)
+    dataset['polarity'] = dataset['text'].apply(get_polarity)
+    dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
+    get_evaluation(dataset)
+
 
 print("---- Train ----")
-main_train()
-
-# Social Dilemma Dataset
-
-def main_socialDilemma():
-    dataset = pd.read_csv("Dataset/TheSocialDilemma.csv")
-    df = pd.DataFrame(dataset, columns=['Sentiment', 'text'])
-    df = df.rename(columns = {'Sentiment':'actual'})
-
-    df['text'] = df['text'].apply(clean_tweets)
-    df['polarity'] = df['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_1)
-            get_evaluation(df)
-        elif x == 1:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_2)
-            get_evaluation(df)
-        else:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_3)
-            get_evaluation(df)
-
-print("----- Social Dilemma -----")
-main_socialDilemma()
+main_airlines()

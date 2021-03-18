@@ -50,7 +50,7 @@ def get_Sentiment_1(polarity):
 def get_Sentiment_2(polarity):
     if polarity >= 0.1:
         return 'positive'
-    elif polarity < 0.1 or polarity > -0.1:
+    elif polarity < 0.1 and polarity > -0.1:
         return 'neutral'
     elif polarity <= -0.1:
         return 'negative'
@@ -64,6 +64,19 @@ def get_Sentiment_3(polarity):
         return 'negative' 
 
 # Evaluations 
+def F1_Score(df, label):
+
+    tp = df[(df['match'] == 1) & (df['actual'] == label)].shape[0]
+    fp = df.loc[(df['match'] == 0) & (df['predicted'] == label)].shape[0]
+    fn = df.loc[(df['match'] == 0) & (df['actual'] == label)].shape[0]
+
+    if ((tp + fp) == 0) or ((tp+fn) == 0):
+        f1 = 0
+    else:
+        precision = tp / (tp + fp) 
+        recall = tp / (tp + fn)
+        f1 = 2 * (precision*recall / (precision + recall))
+    return f1
 
 def get_evaluation(df):
     total = df.shape[0]
@@ -90,6 +103,10 @@ def get_evaluation(df):
     # otherwise put 0 
     df['match'] = np.where(df['actual']==df['predicted'],
     1, 0)
+
+    print("Positive F1 Score:", F1_Score(df, 'positive'))
+    print("Neutral F1 Score:", F1_Score(df, 'neutral'))
+    print("Negative F1 Score:", F1_Score(df, 'negative'))
 
     wrongDf = df.loc[df['match'] == 0]
     wrongDf.to_csv("New/wrongExample.csv", index = False)
@@ -148,6 +165,30 @@ def main_covid():
 print("---- COVID ---")
 main_covid()
 
+# Airlines Dataset
+
+def main_airlines():
+    dataset = pd.read_csv("Dataset/airline.csv")
+    #dataset = dataset.rename(columns = {'sentiment':'actual'})
+    dataset = dataset.rename(columns = {'airline_sentiment':'actual'})
+   
+    dataset['text'] = dataset['text'].apply(clean_tweets)
+    dataset['polarity'] = dataset['text'].apply(get_polarity)
+    for x in range(0,3):
+        if x == 0:
+            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
+            get_evaluation(dataset)
+        elif x == 1:
+            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_2)
+            get_evaluation(dataset)
+        else:
+            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_3)
+            get_evaluation(dataset)
+
+print("---- Airlines ----")
+main_airlines()
+
+
 # Debate Dataset
 
 def main_debate():
@@ -155,7 +196,7 @@ def main_debate():
     df = pd.DataFrame(dataset, columns=['sentiment', 'text'])
     df = df.rename(columns = {'sentiment':'actual'})
 
-    df['text'] = df['text'].apply(cleanTweets)
+    df['text'] = df['text'].apply(clean_tweets)
     df['polarity'] = df['text'].apply(get_polarity)
     for x in range(0,3):
         if x == 0:
@@ -171,47 +212,4 @@ def main_debate():
 print("----Debate-----")
 main_debate()
 
-# Kaggle Dataset
 
-def main_train():
-    dataset = pd.read_csv("Dataset/train.csv")
-    dataset = dataset.rename(columns = {'sentiment':'actual'})
-   
-    dataset['text'] = dataset['text'].apply(cleanTweets)
-    dataset['polarity'] = dataset['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_1)
-            get_evaluation(dataset)
-        elif x == 1:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_2)
-            get_evaluation(dataset)
-        else:
-            dataset['predicted'] = dataset['polarity'].apply(get_Sentiment_3)
-            get_evaluation(dataset)
-
-print("---- Train ----")
-main_train()
-
-# Social Dilemma Dataset
-
-def main_socialDilemma():
-    dataset = pd.read_csv("Dataset/TheSocialDilemma.csv")
-    df = pd.DataFrame(dataset, columns=['Sentiment', 'text'])
-    df = df.rename(columns = {'Sentiment':'actual'})
-
-    df['text'] = df['text'].apply(cleanTweets)
-    df['polarity'] = df['text'].apply(get_polarity)
-    for x in range(0,3):
-        if x == 0:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_1)
-            get_evaluation(df)
-        elif x == 1:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_2)
-            get_evaluation(df)
-        else:
-            df['predicted'] = df['polarity'].apply(get_Sentiment_3)
-            get_evaluation(df)
-
-print("----- Social Dilemma -----")
-main_socialDilemma()
