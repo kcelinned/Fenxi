@@ -8,8 +8,8 @@ import re
 
 # Create a function to clean the tweets
 def clean_tweets(tweet):
-    tweet = re.sub('@[A-Za-z0–9]+', '', tweet) #Removing @mentions
-    tweet = re.sub('#', '', tweet) # Removing '#' hash tag
+    tweet = re.sub('@[A-Za-z0-9]+', '', tweet) #Removing @mentions
+    tweet = re.sub('#', '', tweet)
     tweet = re.sub('RT[\s]+', '', tweet) # Removing RT
     tweet = re.sub('https?:\/\/\S+', '', tweet) # Removing hyperlink
     

@@ -1,0 +1,14 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <title>Twitter Sentiment Analysis</title>
+    </head>
+    <body>
+        <h2>Enter a Query:</h2>
+        <form action ="{{url_for('predict')}}" method="POST">
+            <input type="text" class="search-box" placeholder="Sentiment Analysis on ..."
+                name="query">
+            <button class = "search-button"> Search </button>
+        </form>
+    </body>
+</html>

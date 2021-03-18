@@ -29,17 +29,26 @@ def get_results(df):
     results = [{'Positive Tweets' : pos_count,
                 'Neutral Tweets': neut_count,
                 'Negative Tweets' : neg_count}]
+    return(results)  
 
-    return(results)
+
+def word_cloud(df):
+
+    """ Get significant words/phrases for each sentiment """ 
     
-    
+    pos_tweets = df[df.sentiment == 'positive']
+    neut_tweets = df[df.sentiment == 'neutral']
+    neg_tweets = df[df.sentiment == 'negative']
+
+
+
 def plot_chart(results):
     fig = px.pie(results)
     pieJSON = json.dumps(fig, clas = plotly.utils.PlotlyJSONEncoder)
     return pieJSON 
 
 def clean_tweets(tweet):
-    tweet = re.sub('@[A-Za-z0–9]+', '', tweet) #Removing @mentions
+    tweet = re.sub('@[A-Za-z0-9]+', '', tweet) #Removing @mentions
     tweet = re.sub('#', '', tweet) # Removing '#' hash tag
     tweet = re.sub('RT[\s]+', '', tweet) # Removing RT
     tweet = re.sub('https?:\/\/\S+', '', tweet) # Removing hyperlink

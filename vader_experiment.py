@@ -9,7 +9,7 @@ analyser = SentimentIntensityAnalyzer()
 # create a function to clean the tweets
 
 def clean_tweets(tweet):
-    tweet = re.sub('@[A-Za-z0–9]+', '', str(tweet)) #Removing @mentions
+    tweet = re.sub('@[A-Za-z0-9]+', '', str(tweet)) #Removing @mentions
     tweet = re.sub('#', '', str(tweet)) # Removing '#' hash tag
     tweet = re.sub('RT[\s]+', '', str(tweet)) # Removing RT
     tweet = re.sub('https?:\/\/\S+', '', str(tweet)) # Removing hyperlink
